@@ -7,7 +7,21 @@ const createUserToDB = async (student: Student) => {
   return result;
 };
 
+// Get all data
+const getAllStudents = async () => {
+  const result = await StudentModel.find();
+  return result;
+};
+
+// Get a specific user
+const findStudent = async (studentId: string) => {
+  const result = await StudentModel.findOne({ id: studentId });
+  return result;
+};
+
 // We have to return the function to access from controller function into an object
 export const StudentServices = {
   createUserToDB,
+  getAllStudents,
+  findStudent,
 };
