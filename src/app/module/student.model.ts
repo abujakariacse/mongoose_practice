@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import bcrypt from 'bcrypt';
 import {
   StudentModel,
   TGurdian,
@@ -7,6 +8,7 @@ import {
   TUserName,
 } from './student.interface';
 import validator from 'validator';
+import config from '../config';
 
 // Step - 2 => Creating a schema based on the interface
 const userNameSchema = new Schema<TUserName>({
@@ -112,6 +114,12 @@ const studentSchema = new Schema<TStudent, StudentModel>({
       message: '{VALUE} is not a valid email address',
     },
   },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [8, 'Password must contain at least 8 character'],
+  },
+
   contactNo: {
     type: String,
     required: true,
@@ -154,6 +162,21 @@ const studentSchema = new Schema<TStudent, StudentModel>({
   },
 });
 
+// pre middleware/hook
+
+studentSchema.pre('save', async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this;
+  user.password = await bcrypt.hash(user.password, Number(config.salt_round));
+  next();
+});
+
+studentSchema.post('save', function (doc, next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = doc;
+  user.password = '';
+  next();
+});
 // Custom made static method
 studentSchema.statics.isStudentExist = async function (studentid: string) {
   const existingStudent = await Student.findOne({ id: studentid });
