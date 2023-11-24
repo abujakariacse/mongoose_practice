@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { StudentServices } from './student.service';
+import studentValidationSchema from './student.validation';
 
 // Controller function will call service function and it will pass req data to the service functions. It will call service function and its own function. Example in below. Then It will response the data
 
@@ -7,6 +8,16 @@ const createStudent = async (req: Request, res: Response) => {
   // We are using try catch to prevent unwanted error
   try {
     const student = req.body;
+
+    // Joi validation schema
+    const { error, value } = studentValidationSchema.validate(student);
+    if (error) {
+      res.status(500).json({
+        status: false,
+        mesage: 'Something went wrong',
+        error: error?.details,
+      });
+    }
 
     const result = await StudentServices.createUserToDB(student);
 
@@ -16,7 +27,7 @@ const createStudent = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (err) {
-    res.status(406).json({
+    res.status(500).json({
       status: false,
       mesage: 'Something went wrong',
       error: err,

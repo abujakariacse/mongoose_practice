@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { Gurdian, LocalGurdian, Student, UserName } from './student.interface';
+import validator from 'validator';
 
 // Step - 2 => Creating a schema based on the interface
 const userNameSchema = new Schema<UserName>({
@@ -22,6 +23,10 @@ const userNameSchema = new Schema<UserName>({
   lastName: {
     type: String,
     required: true,
+    validate: {
+      validator: (value: string) => validator.isAlpha(value),
+      message: '{VALUE} is not valid last name',
+    },
   },
 });
 
@@ -96,6 +101,10 @@ const studentSchema = new Schema<Student>({
     required: true,
     trim: true,
     unique: true,
+    validate: {
+      validator: (value: string) => validator.isEmail(value),
+      message: '{VALUE} is not a valid email address',
+    },
   },
   contactNo: {
     type: String,
