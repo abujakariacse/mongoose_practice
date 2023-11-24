@@ -68,10 +68,29 @@ const findASingleStudent = async (req: Request, res: Response) => {
     });
   }
 };
+// Find a specific user
+const deletedStudent = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const result = await StudentServices.deleteStudentFromDB(studentId);
+    res.status(200).json({
+      status: true,
+      message: 'Student is deleted succesfully',
+      data: result,
+    });
+  } catch (err) {
+    res.status(502).json({
+      status: false,
+      message: 'Something went wrong',
+      error: err,
+    });
+  }
+};
 
 // We have to export the controller function to access from route into an object
 export const StudentController = {
   createStudent,
   getStudents,
   findASingleStudent,
+  deletedStudent,
 };

@@ -160,10 +160,15 @@ const studentSchema = new Schema<TStudent, StudentModel>({
     required: true,
     default: 'active',
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // pre middleware/hook
 
+// document middleware
 studentSchema.pre('save', async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this;
@@ -171,17 +176,26 @@ studentSchema.pre('save', async function (next) {
   next();
 });
 
-studentSchema.post('save', function (doc, next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = doc;
-  user.password = '';
+studentSchema.set('toJSON', {
+  transform: function (doc, ret) {
+    delete ret.password;
+    return ret;
+  },
+});
+
+// Query middleware
+studentSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
   next();
 });
+
 // Custom made static method
 studentSchema.statics.isStudentExist = async function (studentid: string) {
   const existingStudent = await Student.findOne({ id: studentid });
   return existingStudent;
 };
+
+// Define a custom transform function to remove the password field
 
 /* // Custom made instance method
 studentSchema.methods.isStudentExist = async function (studentId: string) {

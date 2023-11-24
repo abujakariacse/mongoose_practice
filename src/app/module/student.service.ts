@@ -33,6 +33,14 @@ const findStudent = async (studentId: string) => {
   const result = await Student.findOne({ id: studentId });
   return result;
 };
+// Deletd a specific student
+const deleteStudentFromDB = async (studentId: string) => {
+  const result = await Student.updateOne(
+    { id: studentId },
+    { isDeleted: true },
+  );
+  return result;
+};
 
 // Delete a specific user
 
@@ -41,4 +49,5 @@ export const StudentServices = {
   createUserToDB,
   getAllStudents,
   findStudent,
+  deleteStudentFromDB,
 };
