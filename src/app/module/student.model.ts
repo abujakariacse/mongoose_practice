@@ -1,9 +1,16 @@
 import { Schema, model } from 'mongoose';
-import { Gurdian, LocalGurdian, Student, UserName } from './student.interface';
+import {
+  StudentMethods,
+  StudentModel,
+  TGurdian,
+  TLocalGurdian,
+  TStudent,
+  TUserName,
+} from './student.interface';
 import validator from 'validator';
 
 // Step - 2 => Creating a schema based on the interface
-const userNameSchema = new Schema<UserName>({
+const userNameSchema = new Schema<TUserName>({
   firstName: {
     type: String,
     required: true,
@@ -30,7 +37,7 @@ const userNameSchema = new Schema<UserName>({
   },
 });
 
-const gurdianSchema = new Schema<Gurdian>({
+const gurdianSchema = new Schema<TGurdian>({
   fatherContactNo: {
     type: String,
     required: true,
@@ -56,7 +63,7 @@ const gurdianSchema = new Schema<Gurdian>({
     required: true,
   },
 });
-const localGurdianSchema = new Schema<LocalGurdian>({
+const localGurdianSchema = new Schema<TLocalGurdian>({
   LocalGurdianName: {
     type: String,
     required: true,
@@ -75,7 +82,7 @@ const localGurdianSchema = new Schema<LocalGurdian>({
   },
 });
 
-const studentSchema = new Schema<Student>({
+const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
   id: {
     type: String,
     required: true,
@@ -148,6 +155,12 @@ const studentSchema = new Schema<Student>({
   },
 });
 
+/* // Custom made instance method
+studentSchema.methods.isStudentExist = async function (studentId: string) {
+  const existingStudent = await Student.findOne({ id: studentId });
+  return existingStudent;
+}; */
+
 // Step - 3 => Creating a model
 // It takes interface a generics and take a argument as a name and finally it takes the schema
-export const StudentModel = model<Student>('Student', studentSchema);
+export const Student = model<TStudent, StudentModel>('Student', studentSchema);

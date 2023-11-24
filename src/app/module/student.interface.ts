@@ -1,5 +1,7 @@
+import { Model } from 'mongoose';
+
 // Step -1 => Creating interface
-export type Gurdian = {
+export type TGurdian = {
   fatherName: string;
   fatherOccupation: string;
   fatherContactNo: string;
@@ -7,21 +9,21 @@ export type Gurdian = {
   motherOccupation: string;
   motherContactNo: string;
 };
-export type LocalGurdian = {
+export type TLocalGurdian = {
   LocalGurdianName: string;
   LocalGurdianContactNo: string;
   LocalGurdianAddress: string;
   LocalGurdianOccupation: string;
 };
 
-export type UserName = {
+export type TUserName = {
   firstName: string;
   middleName: string;
   lastName: string;
 };
-export type Student = {
+export type TStudent = {
   id: string;
-  name: UserName;
+  name: TUserName;
   gender?: 'male' | 'female';
   dateOfBirth: string;
   email: string;
@@ -30,8 +32,19 @@ export type Student = {
   bloodGroup?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
   presentAddress: string;
   permanentAddress: string;
-  gurdian: Gurdian;
-  localGurdian: LocalGurdian;
+  gurdian: TGurdian;
+  localGurdian: TLocalGurdian;
   profileImage?: string;
   isActive: 'active' | 'blocked';
 };
+
+// Custom made instance method
+export type StudentMethods = {
+  isStudentExist(studentId: string): Promise<TStudent | null>;
+};
+
+export type StudentModel = Model<
+  TStudent,
+  Record<string, never>,
+  StudentMethods
+>;

@@ -1,28 +1,34 @@
-import { Student } from './student.interface';
-import { StudentModel } from './student.model';
+import { TStudent } from './student.interface';
+import { Student } from './student.model';
 
 // Service function take argument from controller function and create a data using StudentModel.create(argument). Then return the result
-const createUserToDB = async (studentData: Student) => {
+const createUserToDB = async (studentData: TStudent) => {
   /* 
   // Built in static method
   const result = StudentModel.create(studentData); 
   */
 
   // Built in instance method
-  const student = new StudentModel(studentData);
+  const student = new Student(studentData);
+
+  // custom made instance method
+  if (await student.isStudentExist(studentData.id)) {
+    throw new Error('Student already exist');
+  }
   const result = student.save();
+
   return result;
 };
 
 // Get all data
 const getAllStudents = async () => {
-  const result = await StudentModel.find();
+  const result = await Student.find();
   return result;
 };
 
 // Get a specific user
 const findStudent = async (studentId: string) => {
-  const result = await StudentModel.findOne({ id: studentId });
+  const result = await Student.findOne({ id: studentId });
   return result;
 };
 
