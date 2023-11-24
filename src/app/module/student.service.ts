@@ -19,6 +19,8 @@ const findStudent = async (studentId: string) => {
   return result;
 };
 
+// Delete a specific user
+
 // We have to return the function to access from controller function into an object
 export const StudentServices = {
   createUserToDB,

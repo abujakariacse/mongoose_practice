@@ -6,6 +6,14 @@ const userNameSchema = new Schema<UserName>({
   firstName: {
     type: String,
     required: true,
+    maxlength: [20, "First name can't be more than 20 charecter"],
+    validate: {
+      validator: function (value: string) {
+        const capitalizeFormat = value.charAt(0).toUpperCase() + value.slice(1);
+        return value === capitalizeFormat;
+      },
+      message: '{VALUE} is not in capitalize format',
+    },
   },
   middleName: {
     type: String,
@@ -63,9 +71,22 @@ const localGurdianSchema = new Schema<LocalGurdian>({
 });
 
 const studentSchema = new Schema<Student>({
-  id: String,
-  name: userNameSchema,
-  gender: ['male', 'female'],
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  name: {
+    type: userNameSchema,
+    required: [true, 'Name is required'],
+  },
+  gender: {
+    type: String,
+    enum: {
+      values: ['male', 'female'],
+      message: 'Gender should be male or female',
+    },
+  },
   dateOfBirth: {
     type: String,
     required: true,
@@ -73,6 +94,7 @@ const studentSchema = new Schema<Student>({
   email: {
     type: String,
     required: true,
+    trim: true,
     unique: true,
   },
   contactNo: {
@@ -83,7 +105,13 @@ const studentSchema = new Schema<Student>({
     type: String,
     required: true,
   },
-  bloodGroup: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+  bloodGroup: {
+    type: String,
+    enum: {
+      values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+      message: '{VALUE} is not a valid blood group',
+    },
+  },
   presentAddress: {
     type: String,
     required: true,
@@ -92,12 +120,23 @@ const studentSchema = new Schema<Student>({
     type: String,
     required: true,
   },
-  gurdian: gurdianSchema,
-  localGurdian: localGurdianSchema,
+  gurdian: {
+    type: gurdianSchema,
+    required: [true, 'Gurdian is required'],
+  },
+  localGurdian: {
+    type: localGurdianSchema,
+    required: [true, 'Local guardian is required'],
+  },
   profileImage: {
     type: String,
   },
-  isActive: ['active', 'blocked'],
+  isActive: {
+    type: String,
+    enum: ['active', 'blocked'],
+    required: true,
+    default: 'active',
+  },
 });
 
 // Step - 3 => Creating a model
