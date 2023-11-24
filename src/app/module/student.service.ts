@@ -2,8 +2,15 @@ import { Student } from './student.interface';
 import { StudentModel } from './student.model';
 
 // Service function take argument from controller function and create a data using StudentModel.create(argument). Then return the result
-const createUserToDB = async (student: Student) => {
-  const result = StudentModel.create(student);
+const createUserToDB = async (studentData: Student) => {
+  /* 
+  // Built in static method
+  const result = StudentModel.create(studentData); 
+  */
+
+  // Built in instance method
+  const student = new StudentModel(studentData);
+  const result = student.save();
   return result;
 };
 
