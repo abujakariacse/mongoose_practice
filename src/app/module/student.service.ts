@@ -3,19 +3,21 @@ import { Student } from './student.model';
 
 // Service function take argument from controller function and create a data using StudentModel.create(argument). Then return the result
 const createUserToDB = async (studentData: TStudent) => {
-  /* 
+  // Custom static method
+  if (await Student.isStudentExist(studentData.id)) {
+    throw new Error('Student Already Exist');
+  }
   // Built in static method
-  const result = StudentModel.create(studentData); 
-  */
+  const result = Student.create(studentData);
 
-  // Built in instance method
+  /*   // Built in instance method
   const student = new Student(studentData);
 
   // custom made instance method
   if (await student.isStudentExist(studentData.id)) {
     throw new Error('Student already exist');
   }
-  const result = student.save();
+  const result = student.save(); */
 
   return result;
 };

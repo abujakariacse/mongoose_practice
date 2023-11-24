@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import {
-  StudentMethods,
   StudentModel,
   TGurdian,
   TLocalGurdian,
@@ -82,7 +81,7 @@ const localGurdianSchema = new Schema<TLocalGurdian>({
   },
 });
 
-const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
+const studentSchema = new Schema<TStudent, StudentModel>({
   id: {
     type: String,
     required: true,
@@ -154,6 +153,12 @@ const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
     default: 'active',
   },
 });
+
+// Custom made static method
+studentSchema.statics.isStudentExist = async function (studentid: string) {
+  const existingStudent = await Student.findOne({ id: studentid });
+  return existingStudent;
+};
 
 /* // Custom made instance method
 studentSchema.methods.isStudentExist = async function (studentId: string) {
