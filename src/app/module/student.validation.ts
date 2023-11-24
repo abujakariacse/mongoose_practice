@@ -1,56 +1,56 @@
-import Joi from 'joi';
-const userNameValidationSchema = Joi.object({
-  firstName: Joi.string()
-    .required()
+import { z } from 'zod';
+// Define Zod schemas for subdocuments
+const userNameSchema = z.object({
+  firstName: z
+    .string()
+    .min(1)
     .max(20)
-    .pattern(/^[A-Z][a-z]*$/),
-  middleName: Joi.string().required(),
-  lastName: Joi.string()
-    .required()
-    .pattern(/^[A-Za-z]+$/),
+    .refine(
+      (value) => value.charAt(0).toUpperCase() + value.slice(1) === value,
+      {
+        message: 'First name should be in capitalize format',
+      },
+    ),
+  middleName: z.string(),
+  lastName: z.string().refine((value) => /^[A-Za-z]+$/.test(value), {
+    message: 'Last name should contain only alphabetic characters',
+  }),
 });
 
-const gurdianValidationSchema = Joi.object({
-  fatherContactNo: Joi.string().required(),
-  fatherOccupation: Joi.string().required(),
-  fatherName: Joi.string().required(),
-  motherContactNo: Joi.string().required(),
-  motherOccupation: Joi.string().required(),
-  motherName: Joi.string().required(),
+const gurdianZodValidationSchema = z.object({
+  fatherContactNo: z.string(),
+  fatherOccupation: z.string(),
+  fatherName: z.string(),
+  motherContactNo: z.string(),
+  motherOccupation: z.string(),
+  motherName: z.string(),
 });
 
-const localGurdianValidationSchema = Joi.object({
-  LocalGurdianName: Joi.string().required(),
-  LocalGurdianOccupation: Joi.string().required(),
-  LocalGurdianContactNo: Joi.string().required(),
-  LocalGurdianAddress: Joi.string().required(),
+const localGurdianZodValidationSchema = z.object({
+  LocalGurdianName: z.string(),
+  LocalGurdianOccupation: z.string(),
+  LocalGurdianContactNo: z.string(),
+  LocalGurdianAddress: z.string(),
 });
 
-// Define Joi schema for the main Student model
-const studentValidationSchema = Joi.object({
-  id: Joi.string().required(),
-  name: userNameValidationSchema.required(),
-  gender: Joi.string().valid('male', 'female'),
-  dateOfBirth: Joi.string().required(),
-  email: Joi.string().email().required(),
-  contactNo: Joi.string().required(),
-  emergencyContact: Joi.string().required(),
-  bloodGroup: Joi.string().valid(
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'AB+',
-    'AB-',
-    'O+',
-    'O-',
-  ),
-  presentAddress: Joi.string().required(),
-  permanentAddress: Joi.string().required(),
-  gurdian: gurdianValidationSchema.required(),
-  localGurdian: localGurdianValidationSchema.required(),
-  profileImage: Joi.string(),
-  isActive: Joi.string().valid('active', 'blocked').required(),
+// Define Zod schema for the main Student model
+const studentValidationSchemaZOD = z.object({
+  id: z.string(),
+  name: userNameSchema,
+  gender: z.enum(['male', 'female']).optional(),
+  dateOfBirth: z.string(),
+  email: z.string().email(),
+  contactNo: z.string(),
+  emergencyContact: z.string(),
+  bloodGroup: z
+    .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+    .optional(),
+  presentAddress: z.string(),
+  permanentAddress: z.string(),
+  gurdian: gurdianZodValidationSchema,
+  localGurdian: localGurdianZodValidationSchema,
+  profileImage: z.string().optional(),
+  isActive: z.enum(['active', 'blocked']).default('active'),
 });
 
-export default studentValidationSchema;
+export default studentValidationSchemaZOD;

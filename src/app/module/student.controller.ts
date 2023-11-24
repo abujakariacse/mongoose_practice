@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { StudentServices } from './student.service';
-import studentValidationSchema from './student.validation';
+import studentValidationSchemaZOD from './student.validation';
+// import studentValidationSchema from './student.validation.joi';
 
 // Controller function will call service function and it will pass req data to the service functions. It will call service function and its own function. Example in below. Then It will response the data
 
@@ -9,17 +10,13 @@ const createStudent = async (req: Request, res: Response) => {
   try {
     const student = req.body;
 
-    // Joi validation schema
-    const { error, value } = studentValidationSchema.validate(student);
-    if (error) {
-      res.status(500).json({
-        status: false,
-        mesage: 'Something went wrong',
-        error: error?.details,
-      });
-    }
+    /* // Data validation using JOI
+    const { error, value } = studentValidationSchema.validate(student); */
 
-    const result = await StudentServices.createUserToDB(student);
+    // Data validation using zod
+    const validatedData = studentValidationSchemaZOD.parse(student);
+
+    const result = await StudentServices.createUserToDB(validatedData);
 
     res.status(201).json({
       status: true,
