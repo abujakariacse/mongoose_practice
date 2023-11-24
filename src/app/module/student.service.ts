@@ -30,7 +30,9 @@ const getAllStudents = async () => {
 
 // Get a specific user
 const findStudent = async (studentId: string) => {
-  const result = await Student.findOne({ id: studentId });
+  // const result = await Student.findOne({ id: studentId });
+
+  const result = await Student.aggregate([{ $match: { id: studentId } }]);
   return result;
 };
 // Deletd a specific student
