@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import bcrypt from 'bcrypt';
 import {
   StudentModel,
   TGurdian,
@@ -8,7 +7,6 @@ import {
   TUserName,
 } from './student.interface';
 import validator from 'validator';
-import config from '../config';
 
 // Step - 2 => Creating a schema based on the interface
 const userNameSchema = new Schema<TUserName>({
@@ -83,104 +81,99 @@ const localGurdianSchema = new Schema<TLocalGurdian>({
   },
 });
 
-const studentSchema = new Schema<TStudent, StudentModel>({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: {
-    type: userNameSchema,
-    required: [true, 'Name is required'],
-  },
-  gender: {
-    type: String,
-    enum: {
-      values: ['male', 'female'],
-      message: 'Gender should be male or female',
+const studentSchema = new Schema<TStudent, StudentModel>(
+  {
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'Userid is required'],
+      unique: true,
+      ref: 'User',
+    },
+    name: {
+      type: userNameSchema,
+      required: [true, 'Name is required'],
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: ['male', 'female'],
+        message: 'Gender should be male or female',
+      },
+      required: true,
+    },
+    dateOfBirth: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      validate: {
+        validator: (value: string) => validator.isEmail(value),
+        message: '{VALUE} is not a valid email address',
+      },
+    },
+    contactNo: {
+      type: String,
+      required: true,
+    },
+    emergencyContact: {
+      type: String,
+      required: true,
+    },
+    bloodGroup: {
+      type: String,
+      enum: {
+        values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+        message: '{VALUE} is not a valid blood group',
+      },
+    },
+    presentAddress: {
+      type: String,
+      required: true,
+    },
+    permanentAddress: {
+      type: String,
+      required: true,
+    },
+    gurdian: {
+      type: gurdianSchema,
+      required: [true, 'Gurdian is required'],
+    },
+    localGurdian: {
+      type: localGurdianSchema,
+      required: [true, 'Local guardian is required'],
+    },
+    profileImage: {
+      type: String,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
-  dateOfBirth: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true,
-    validate: {
-      validator: (value: string) => validator.isEmail(value),
-      message: '{VALUE} is not a valid email address',
+  {
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        delete ret.password;
+        return ret;
+      },
     },
   },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must contain at least 8 character'],
-  },
+);
 
-  contactNo: {
-    type: String,
-    required: true,
-  },
-  emergencyContact: {
-    type: String,
-    required: true,
-  },
-  bloodGroup: {
-    type: String,
-    enum: {
-      values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-      message: '{VALUE} is not a valid blood group',
-    },
-  },
-  presentAddress: {
-    type: String,
-    required: true,
-  },
-  permanentAddress: {
-    type: String,
-    required: true,
-  },
-  gurdian: {
-    type: gurdianSchema,
-    required: [true, 'Gurdian is required'],
-  },
-  localGurdian: {
-    type: localGurdianSchema,
-    required: [true, 'Local guardian is required'],
-  },
-  profileImage: {
-    type: String,
-  },
-  isActive: {
-    type: String,
-    enum: ['active', 'blocked'],
-    required: true,
-    default: 'active',
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-// pre middleware/hook
-
-// document middleware
-studentSchema.pre('save', async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this;
-  user.password = await bcrypt.hash(user.password, Number(config.salt_round));
-  next();
-});
-
-studentSchema.set('toJSON', {
-  transform: function (doc, ret) {
-    delete ret.password;
-    return ret;
-  },
+//virtual (It means field is not exist but we can drive data from another field)
+studentSchema.virtual('FullName').get(function () {
+  return this.name.firstName + this.name.lastName;
 });
 
 // Query middleware
@@ -202,14 +195,6 @@ studentSchema.statics.isStudentExist = async function (studentid: string) {
   const existingStudent = await Student.findOne({ id: studentid });
   return existingStudent;
 };
-
-// Define a custom transform function to remove the password field
-
-/* // Custom made instance method
-studentSchema.methods.isStudentExist = async function (studentId: string) {
-  const existingStudent = await Student.findOne({ id: studentId });
-  return existingStudent;
-}; */
 
 // Step - 3 => Creating a model
 // It takes interface a generics and take a argument as a name and finally it takes the schema

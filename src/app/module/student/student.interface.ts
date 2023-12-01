@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 // Step -1 => Creating interface
 export type TGurdian = {
@@ -23,6 +23,7 @@ export type TUserName = {
 };
 export type TStudent = {
   id: string;
+  user: Types.ObjectId;
   name: TUserName;
   gender?: 'male' | 'female';
   dateOfBirth: string;
@@ -36,7 +37,6 @@ export type TStudent = {
   gurdian: TGurdian;
   localGurdian: TLocalGurdian;
   profileImage?: string;
-  isActive: 'active' | 'blocked';
   isDeleted: boolean;
 };
 
