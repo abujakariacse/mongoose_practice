@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { StudentRoutes } from './app/module/student/student.route';
-import { userRoutes } from './app/module/user/user.route';
 import globalErrorHandler from './app/middlewares/globalErrorhandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/modules';
@@ -18,7 +16,7 @@ app.use(express.json());
 app.use('/api/v1/', router);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send(`Hello duniya!`);
+  res.send(`The server is running!`);
 });
 
 app.use(globalErrorHandler);
