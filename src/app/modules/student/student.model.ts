@@ -108,7 +108,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     },
     dateOfBirth: {
       type: String,
-      required: true,
     },
     email: {
       type: String,
@@ -168,6 +167,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
         return ret;
       },
     },
+    timestamps: true,
   },
 );
 
