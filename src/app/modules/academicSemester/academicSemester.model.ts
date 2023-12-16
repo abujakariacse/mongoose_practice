@@ -38,7 +38,7 @@ const AcademicSemesterSchema = new Schema<TAcademicSemester>(
 
 // Check semester is already exist on the perticular year or not using pre hook middleware
 AcademicSemesterSchema.pre('save', async function (next) {
-  const isSemesterExist = await Semester.findOne({
+  const isSemesterExist = await AcademicSemester.findOne({
     name: this.name,
     year: this.year,
   });
@@ -48,7 +48,7 @@ AcademicSemesterSchema.pre('save', async function (next) {
   next();
 });
 
-export const Semester = model<TAcademicSemester>(
-  'academicSemster',
+export const AcademicSemester = model<TAcademicSemester>(
+  'AcademicSemester',
   AcademicSemesterSchema,
 );
