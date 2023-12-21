@@ -20,7 +20,9 @@ const findLastestUser = async () => {
 };
 
 // Year semester 4 digit code
-export const generateStudentId = async (payload: TAcademicSemester) => {
+export const generateStudentId = async (
+  payload: Partial<TAcademicSemester>,
+) => {
   const currentId = (await findLastestUser()) || 0;
   let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
   return (incrementId = `${payload.year}${payload.code}${incrementId}`);

@@ -19,7 +19,14 @@ const getAllStudents = async () => {
 const findStudent = async (studentId: string) => {
   // const result = await Student.findOne({ id: studentId });
 
-  const result = await Student.aggregate([{ $match: { id: studentId } }]);
+  const result = await Student.findOne({ id: studentId })
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
   return result;
 };
 // Deletd a specific student

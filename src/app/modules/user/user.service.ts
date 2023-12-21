@@ -31,7 +31,14 @@ const createUserToDB = async (password: string, payload: TStudent) => {
     payload.id = newUser.id;
     payload.user = newUser._id;
 
-    const newStudent = await Student.create(payload);
+    const newStudent = (
+      await (await Student.create(payload)).populate('admissionSemester')
+    ).populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
     return newStudent;
   }
 };
