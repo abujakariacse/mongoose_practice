@@ -19,6 +19,12 @@ app.get('/', (req: Request, res: Response) => {
   res.send(`The server is running!`);
 });
 
+const test = async (req: Request, res: Response) => {
+  Promise.reject();
+};
+
+app.get('/test', test);
+
 app.use(globalErrorHandler);
 
 app.use(notFound);
