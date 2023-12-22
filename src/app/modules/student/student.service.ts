@@ -8,8 +8,30 @@ import { TStudent } from './student.interface';
 // Service function take argument from controller function and create a data using StudentModel.create(argument). Then return the result
 
 // Get all data
-const getAllStudents = async () => {
-  const result = await Student.find()
+const getAllStudents = async (query: Record<string, unknown>) => {
+  let search = '';
+  if (query?.search) {
+    search = query?.search as string;
+  }
+
+  /* 
+  * Search term example:
+  {fieldName:{$regex: searchQuery, $options: 'i'}}
+  // here $options means case insensivity
+
+  {
+    'email': {$regex: 'jack',$options: 'i}
+  }
+
+  */
+
+  const result = await Student.find({
+    $or: ['email', 'name.firstName', 'presentAddress', 'permanentAddress'].map(
+      (field) => ({
+        [field]: { $regex: search, $options: 'i' },
+      }),
+    ),
+  })
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
