@@ -27,8 +27,22 @@ const findASingleStudent = catchAsync(async (req, res) => {
     data: result,
   });
 });
-// Find a specific user
-const deletedStudent = catchAsync(async (req, res) => {
+
+// update a specific user
+const updateASingleStudent = catchAsync(async (req, res) => {
+  const { studentId } = req.params;
+  const { student } = req.body;
+  const result = await StudentServices.updateStudentIntoDB(studentId, student);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Students updated succesfully',
+    data: result,
+  });
+});
+
+// delte a specific user
+const deleteStudent = catchAsync(async (req, res) => {
   const { studentId } = req.params;
   const result = await StudentServices.deleteStudentFromDB(studentId);
   sendResponse(res, {
@@ -43,5 +57,6 @@ const deletedStudent = catchAsync(async (req, res) => {
 export const StudentController = {
   getStudents,
   findASingleStudent,
-  deletedStudent,
+  deleteStudent,
+  updateASingleStudent,
 };

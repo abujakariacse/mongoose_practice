@@ -192,6 +192,10 @@ studentSchema.pre('findOne', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
+studentSchema.pre('findOneAndUpdate', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
 
 studentSchema.pre('aggregate', function () {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
@@ -199,7 +203,9 @@ studentSchema.pre('aggregate', function () {
 
 // Custom made static method
 studentSchema.statics.isStudentExist = async function (studentid: string) {
-  const existingStudent = await Student.findOne({ id: studentid });
+  const existingStudent = await Student.findOne({
+    id: studentid,
+  });
   return existingStudent;
 };
 
