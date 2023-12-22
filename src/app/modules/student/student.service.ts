@@ -74,7 +74,7 @@ const updateStudentIntoDB = async (
   const updatedStudent = await Student.findOneAndUpdate(
     { id: studentId },
     { $set: modifiedData },
-    { new: true },
+    { new: true, runValidators: true },
   );
 
   if (!updatedStudent) {
