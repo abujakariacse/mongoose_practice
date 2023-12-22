@@ -5,6 +5,8 @@ import { ZodError, ZodIssue } from 'zod';
 import { TErrorSources } from '../interface/error';
 import config from '../config';
 import { MongooseError } from 'mongoose';
+import { handleZodError } from '../errors/handleZodError';
+import { handleValidationError } from '../errors/handleValidationError';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   // setting default value
@@ -19,30 +21,23 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     },
   ];
 
-  const handleZodError = (err: ZodError) => {
-    statusCode = 400;
-    errorSources = err?.issues?.map((issue: ZodIssue) => ({
-      path: issue?.path[issue.path.length - 1],
-      message: issue?.message,
-    }));
-
-    return {
-      statusCode,
-      message: 'Validation error',
-      errorSources,
-    };
-  };
-
   if (err instanceof ZodError) {
     const simplifiedError = handleZodError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
+  } else if (err?.name === 'ValidationError') {
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
   }
 
   return res.status(statusCode).json({
     success: false,
     message,
     errorSources,
+    // err,
     stack: config.NODE_ENV === 'development' ? err?.stack : null,
   });
 };
