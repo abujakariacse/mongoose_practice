@@ -1,120 +1,96 @@
 import { z } from 'zod';
-// Define Zod schemas for subdocuments
-const userNameSchema = z.object({
+
+const createUserNameValidationSchema = z.object({
   firstName: z
     .string()
     .min(1)
     .max(20)
-    .refine(
-      (value) => value.charAt(0).toUpperCase() + value.slice(1) === value,
-      {
-        message: 'First name should be in capitalize format',
-      },
-    ),
+    .refine((value) => /^[A-Z]/.test(value), {
+      message: 'First Name must start with a capital letter',
+    }),
   middleName: z.string(),
-  lastName: z.string().refine((value) => /^[A-Za-z]+$/.test(value), {
-    message: 'Last name should contain only alphabetic characters',
-  }),
+  lastName: z.string(),
 });
 
-const gurdianValidationSchema = z.object({
-  fatherContactNo: z.string(),
-  fatherOccupation: z.string(),
+const createGuardianValidationSchema = z.object({
   fatherName: z.string(),
-  motherContactNo: z.string(),
-  motherOccupation: z.string(),
+  fatherOccupation: z.string(),
+  fatherContactNo: z.string(),
   motherName: z.string(),
+  motherOccupation: z.string(),
+  motherContactNo: z.string(),
 });
 
-const localGurdianValidationSchema = z.object({
-  LocalGurdianName: z.string(),
-  LocalGurdianOccupation: z.string(),
-  LocalGurdianContactNo: z.string(),
-  LocalGurdianAddress: z.string(),
+const createLocalGuardianValidationSchema = z.object({
+  name: z.string(),
+  occupation: z.string(),
+  contactNo: z.string(),
+  address: z.string(),
 });
 
-// Define Zod schema for the main Student model
-const createStudentValidationSchema = z.object({
+export const createStudentValidationSchema = z.object({
   body: z.object({
+    password: z.string().max(20),
     student: z.object({
-      name: userNameSchema,
-      gender: z.enum(['male', 'female']).optional(),
+      name: createUserNameValidationSchema,
+      gender: z.enum(['male', 'female', 'other']),
       dateOfBirth: z.string().optional(),
       email: z.string().email(),
-      password: z.string().min(8),
       contactNo: z.string(),
-      emergencyContact: z.string(),
-      bloodGroup: z
-        .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
-        .optional(),
+      emergencyContactNo: z.string(),
+      bloogGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
       presentAddress: z.string(),
       permanentAddress: z.string(),
-      gurdian: gurdianValidationSchema,
-      localGurdian: localGurdianValidationSchema,
+      guardian: createGuardianValidationSchema,
+      localGuardian: createLocalGuardianValidationSchema,
       admissionSemester: z.string(),
+      profileImg: z.string(),
       academicDepartment: z.string(),
-      profileImage: z.string().optional(),
     }),
   }),
 });
 
-const userNameUpdateSchema = z.object({
-  firstName: z
-    .string()
-    .min(1)
-    .max(20)
-    .refine(
-      (value) => value.charAt(0).toUpperCase() + value.slice(1) === value,
-      {
-        message: 'First name should be in capitalize format',
-      },
-    )
-    .optional(),
+const updateUserNameValidationSchema = z.object({
+  firstName: z.string().min(1).max(20).optional(),
   middleName: z.string().optional(),
-  lastName: z
-    .string()
-    .refine((value) => /^[A-Za-z]+$/.test(value), {
-      message: 'Last name should contain only alphabetic characters',
-    })
-    .optional(),
+  lastName: z.string().optional(),
 });
 
-const gurdianUpdateValidationSchema = z.object({
-  fatherContactNo: z.string().optional(),
-  fatherOccupation: z.string().optional(),
+const updateGuardianValidationSchema = z.object({
   fatherName: z.string().optional(),
-  motherContactNo: z.string().optional(),
-  motherOccupation: z.string().optional(),
+  fatherOccupation: z.string().optional(),
+  fatherContactNo: z.string().optional(),
   motherName: z.string().optional(),
+  motherOccupation: z.string().optional(),
+  motherContactNo: z.string().optional(),
 });
 
-const localGurdianUpdateValidationSchema = z.object({
-  LocalGurdianName: z.string().optional(),
-  LocalGurdianOccupation: z.string().optional(),
-  LocalGurdianContactNo: z.string().optional(),
-  LocalGurdianAddress: z.string().optional(),
+const updateLocalGuardianValidationSchema = z.object({
+  name: z.string().optional(),
+  occupation: z.string().optional(),
+  contactNo: z.string().optional(),
+  address: z.string().optional(),
 });
 
-const updateStudentValidationSchema = z.object({
+export const updateStudentValidationSchema = z.object({
   body: z.object({
     student: z.object({
-      name: userNameUpdateSchema.optional(),
-      gender: z.enum(['male', 'female']).optional(),
+      name: updateUserNameValidationSchema,
+      gender: z.enum(['male', 'female', 'other']).optional(),
       dateOfBirth: z.string().optional(),
       email: z.string().email().optional(),
-      password: z.string().min(8).optional(),
       contactNo: z.string().optional(),
-      emergencyContact: z.string().optional(),
-      bloodGroup: z
+      emergencyContactNo: z.string().optional(),
+      bloogGroup: z
         .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
         .optional(),
       presentAddress: z.string().optional(),
       permanentAddress: z.string().optional(),
-      gurdian: gurdianUpdateValidationSchema.optional(),
-      localGurdian: localGurdianUpdateValidationSchema.optional(),
+      guardian: updateGuardianValidationSchema.optional(),
+      localGuardian: updateLocalGuardianValidationSchema.optional(),
       admissionSemester: z.string().optional(),
+      profileImg: z.string().optional(),
       academicDepartment: z.string().optional(),
-      profileImage: z.string().optional(),
     }),
   }),
 });

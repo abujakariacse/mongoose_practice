@@ -1,62 +1,60 @@
-import { StudentServices } from './student.service';
-import sendResponse from '../../utils/sendResponse';
+import { RequestHandler } from 'express';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
+import { StudentServices } from './student.service';
 
-// Controller function will call service function and it will pass req data to the service functions. It will call service function and its own function. Example in below. Then It will response the data
+const getSingleStudent = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await StudentServices.getSingleStudentFromDB(id);
 
-// Get all students
-const getStudents = catchAsync(async (req, res) => {
-  const result = await StudentServices.getAllStudents(req?.query);
   sendResponse(res, {
-    success: true,
     statusCode: httpStatus.OK,
-    message: 'Students retrived succesfully',
+    success: true,
+    message: 'Student is retrieved succesfully',
     data: result,
   });
 });
 
-// Find a specific user
-const findASingleStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const result = await StudentServices.findStudent(studentId);
+const getAllStudents: RequestHandler = catchAsync(async (req, res) => {
+  const result = await StudentServices.getAllStudentsFromDB(req.query);
+
   sendResponse(res, {
-    success: true,
     statusCode: httpStatus.OK,
-    message: 'Student retrived succesfully',
+    success: true,
+    message: 'Student are retrieved succesfully',
     data: result,
   });
 });
 
-// update a specific user
-const updateASingleStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
+const updateStudent = catchAsync(async (req, res) => {
+  const { id } = req.params;
   const { student } = req.body;
-  const result = await StudentServices.updateStudentIntoDB(studentId, student);
+  const result = await StudentServices.updateStudentIntoDB(id, student);
+
   sendResponse(res, {
-    success: true,
     statusCode: httpStatus.OK,
-    message: 'Students updated succesfully',
+    success: true,
+    message: 'Student is updated succesfully',
     data: result,
   });
 });
 
-// delte a specific user
 const deleteStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const result = await StudentServices.deleteStudentFromDB(studentId);
+  const { id } = req.params;
+  const result = await StudentServices.deleteStudentFromDB(id);
+
   sendResponse(res, {
-    success: true,
     statusCode: httpStatus.OK,
-    message: 'Student deleted succesfully',
+    success: true,
+    message: 'Student is deleted succesfully',
     data: result,
   });
 });
 
-// We have to export the controller function to access from route into an object
-export const StudentController = {
-  getStudents,
-  findASingleStudent,
+export const StudentControllers = {
+  getAllStudents,
+  getSingleStudent,
   deleteStudent,
-  updateASingleStudent,
+  updateStudent,
 };

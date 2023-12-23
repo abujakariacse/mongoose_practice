@@ -1,45 +1,42 @@
-import mongoose from 'mongoose';
-import { Student } from './student.model';
-import AppError from '../../errors/AppError';
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
+import { studentSearchableFields } from './student.constant';
 import { TStudent } from './student.interface';
+import { Student } from './student.model';
+import { QueryBuilder } from '../../builder/QueryBuilder';
 
-// Service function take argument from controller function and create a data using StudentModel.create(argument). Then return the result
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  /*
+  const queryObj = { ...query }; // copying req.query object so that we can mutate the copy object 
+   
+  let searchTerm = '';   // SET DEFAULT VALUE 
 
-// Get all data
-const getAllStudents = async (query: Record<string, unknown>) => {
-  let search = '';
-  if (query?.search) {
-    search = query?.search as string;
+  // IF searchTerm  IS GIVEN SET IT
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string; 
   }
-  /* 
-  * Search term example:
-  {fieldName:{$regex: searchQuery, $options: 'i'}}
-  // here $options means case insensivity
 
-  {
-    'email': {$regex: 'jack',$options: 'i}
-  }
-  */
-  const studentSearchableFields: string[] = [
-    'email',
-    'name.firstName',
-    'presentAddress',
-    'permanentAddress',
-  ];
+  
+ // HOW OUR FORMAT SHOULD BE FOR PARTIAL MATCH  : 
+  { email: { $regex : query.searchTerm , $options: i}}
+  { presentAddress: { $regex : query.searchTerm , $options: i}}
+  { 'name.firstName': { $regex : query.searchTerm , $options: i}}
 
-  // Search Query
-  const searchQuery = Student.find({
-    $or: studentSearchableFields.map((field) => ({
-      [field]: { $regex: search, $options: 'i' },
+  
+  // WE ARE DYNAMICALLY DOING IT USING LOOP
+   const searchQuery = Student.find({
+     $or: studentSearchableFields.map((field) => ({
+       [field]: { $regex: searchTerm, $options: 'i' },
     })),
-  });
+   });
 
-  // Filter Query
-  const queryObj = { ...query };
-  const excludeFields: string[] = ['search', 'sort', 'limit', 'page', 'fields'];
-  excludeFields.filter((ele) => delete queryObj[ele]);
+  
+   // FILTERING fUNCTIONALITY:
+  
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+   excludeFields.forEach((el) => delete queryObj[el]);  // DELETING THE FIELDS SO THAT IT CAN'T MATCH OR FILTER EXACTLY
 
   const filterQuery = searchQuery
     .find(queryObj)
@@ -51,45 +48,89 @@ const getAllStudents = async (query: Record<string, unknown>) => {
       },
     });
 
-  // Sort query
-  let sort = '-createdAt';
-  if (query?.sort) {
-    sort = query?.sort as string;
+ 
+  // SORTING FUNCTIONALITY:
+  
+  let sort = '-createdAt'; // SET DEFAULT VALUE 
+ 
+ // IF sort  IS GIVEN SET IT
+  
+   if (query.sort) {
+    sort = query.sort as string;
   }
 
-  const sortQuery = filterQuery.sort(sort);
+   const sortQuery = filterQuery.sort(sort);
 
-  // limit query
-  let limit = 0;
-  if (query?.limit) {
-    limit = query?.limit as number;
+
+   // PAGINATION FUNCTIONALITY:
+
+   let page = 1; // SET DEFAULT VALUE FOR PAGE 
+   let limit = 1; // SET DEFAULT VALUE FOR LIMIT 
+   let skip = 0; // SET DEFAULT VALUE FOR SKIP
+
+
+  // IF limit IS GIVEN SET IT
+  
+  if (query.limit) {
+    limit = Number(query.limit);
   }
-  const limitQuery = sortQuery.limit(limit);
 
-  // paginateQuery
-  let skip = 0;
-  let page = 1;
+  // IF page IS GIVEN SET IT
 
-  if (query?.page) {
-    page = query.page as number;
+  if (query.page) {
+    page = Number(query.page);
     skip = (page - 1) * limit;
   }
 
-  const paginationQuery = limitQuery.skip(skip);
+  const paginateQuery = sortQuery.skip(skip);
 
-  let fields = '-__v';
-  if (query?.fields) {
-    fields = (query?.fields as string).split(',').join(' ');
+  const limitQuery = paginateQuery.limit(limit);
+
+  
+  
+  // FIELDS LIMITING FUNCTIONALITY:
+
+  // HOW OUR FORMAT SHOULD BE FOR PARTIAL MATCH 
+
+  fields: 'name,email'; // WE ARE ACCEPTING FROM REQUEST
+  fields: 'name email'; // HOW IT SHOULD BE 
+
+  let fields = '-__v'; // SET DEFAULT VALUE
+
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+
   }
 
-  const fieldsQuery = await paginationQuery.select(fields);
+  const fieldQuery = await limitQuery.select(fields);
 
-  return fieldsQuery;
+  return fieldQuery;
+
+  */
+
+  const studentQuery = new QueryBuilder(
+    Student.find()
+      .populate('admissionSemester')
+      .populate({
+        path: 'academicDepartment',
+        populate: {
+          path: 'academicFaculty',
+        },
+      }),
+    query,
+  )
+    .search(studentSearchableFields)
+    .filter()
+    .sort()
+    .pagination()
+    .fields();
+
+  const result = await studentQuery.modelQuery;
+  return result;
 };
 
-// Get a specific user
-const findStudent = async (studentId: string) => {
-  const result = await Student.findOne({ id: studentId })
+const getSingleStudentFromDB = async (id: string) => {
+  const result = await Student.findById(id)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -100,91 +141,76 @@ const findStudent = async (studentId: string) => {
   return result;
 };
 
-// update a student into db
-const updateStudentIntoDB = async (
-  studentId: string,
-  payload: Partial<TStudent>,
-) => {
-  const isStudentExist = Student.findOne({
-    id: studentId,
-    isDeleted: { $ne: true },
-  });
+const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
+  const { name, guardian, localGuardian, ...remainingStudentData } = payload;
 
-  if (!isStudentExist) {
-    throw new AppError(httpStatus.NOT_FOUND, "User doesn't exist");
-  }
+  const modifiedUpdatedData: Record<string, unknown> = {
+    ...remainingStudentData,
+  };
 
-  // update data without muting non premitive data
-  const { name, gurdian, localGurdian, ...remainingStudentData } = payload;
+  /*
+    guardain: {
+      fatherOccupation:"Teacher"
+    }
 
-  const modifiedData: Record<string, unknown> = { ...remainingStudentData };
+    guardian.fatherOccupation = Teacher
+
+    name.firstName = 'Mezba'
+    name.lastName = 'Abedin'
+  */
 
   if (name && Object.keys(name).length) {
     for (const [key, value] of Object.entries(name)) {
-      modifiedData[`name.${key}`] = value;
+      modifiedUpdatedData[`name.${key}`] = value;
     }
   }
 
-  if (gurdian && Object.keys(gurdian).length) {
-    for (const [key, value] of Object.entries(gurdian)) {
-      modifiedData[`gurdian.${key}`] = value;
+  if (guardian && Object.keys(guardian).length) {
+    for (const [key, value] of Object.entries(guardian)) {
+      modifiedUpdatedData[`guardian.${key}`] = value;
     }
   }
 
-  if (localGurdian && Object.keys(localGurdian).length) {
-    for (const [key, value] of Object.entries(localGurdian)) {
-      modifiedData[`localGurdian${key}`] = value;
+  if (localGuardian && Object.keys(localGuardian).length) {
+    for (const [key, value] of Object.entries(localGuardian)) {
+      modifiedUpdatedData[`localGuardian.${key}`] = value;
     }
   }
 
-  // student deleted (transaction - 1)
-  const updatedStudent = await Student.findOneAndUpdate(
-    { id: studentId },
-    { $set: modifiedData },
-    { new: true, runValidators: true },
-  );
-
-  if (!updatedStudent) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Student updated failed');
-  }
-  return updatedStudent;
+  const result = await Student.findByIdAndUpdate(id, modifiedUpdatedData, {
+    new: true,
+    runValidators: true,
+  });
+  return result;
 };
 
-// Deletd a specific student
-const deleteStudentFromDB = async (studentId: string) => {
+const deleteStudentFromDB = async (id: string) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    const isStudentExist = Student.findOne({
-      id: studentId,
-      isDeleted: { $ne: true },
-    });
-    if (!isStudentExist) {
-      throw new AppError(httpStatus.NOT_FOUND, "User doesn't exist");
-    }
-
-    // student deleted (transaction - 1)
-    const deletedStudent = await Student.findOneAndUpdate(
-      { id: studentId },
+    const deletedStudent = await Student.findByIdAndUpdate(
+      id,
       { isDeleted: true },
       { new: true, session },
     );
 
     if (!deletedStudent) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Student deletion failed');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const deletedUser = await User.findOneAndUpdate(
-      { id: studentId },
+    // get user _id from deletedStudent
+    const userId = deletedStudent.user;
+
+    const deletedUser = await User.findByIdAndUpdate(
+      userId,
       { isDeleted: true },
       { new: true, session },
     );
 
-    if (!deletedStudent) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Student deletion failed');
+    if (!deletedUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');
     }
 
     await session.commitTransaction();
@@ -194,14 +220,13 @@ const deleteStudentFromDB = async (studentId: string) => {
   } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error('Student deletion failed');
+    throw new Error('Failed to delete student');
   }
 };
 
-// We have to return the function to access from controller function into an object
 export const StudentServices = {
-  getAllStudents,
-  findStudent,
-  deleteStudentFromDB,
+  getAllStudentsFromDB,
+  getSingleStudentFromDB,
   updateStudentIntoDB,
+  deleteStudentFromDB,
 };
