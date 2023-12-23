@@ -38,7 +38,7 @@ const getAllStudents = async (query: Record<string, unknown>) => {
 
   // Filter Query
   const queryObj = { ...query };
-  const excludeFields: string[] = ['search', 'sort', 'limit', 'page'];
+  const excludeFields: string[] = ['search', 'sort', 'limit', 'page', 'fields'];
   excludeFields.filter((ele) => delete queryObj[ele]);
 
   const filterQuery = searchQuery
@@ -60,14 +60,31 @@ const getAllStudents = async (query: Record<string, unknown>) => {
   const sortQuery = filterQuery.sort(sort);
 
   // limit query
-  let limit = 1;
+  let limit = 0;
   if (query?.limit) {
     limit = query?.limit as number;
   }
+  const limitQuery = sortQuery.limit(limit);
 
-  const limitQuery = await sortQuery.limit(limit);
+  // paginateQuery
+  let skip = 0;
+  let page = 1;
 
-  return limitQuery;
+  if (query?.page) {
+    page = query.page as number;
+    skip = (page - 1) * limit;
+  }
+
+  const paginationQuery = limitQuery.skip(skip);
+
+  let fields = '-__v';
+  if (query?.fields) {
+    fields = (query?.fields as string).split(',').join(' ');
+  }
+
+  const fieldsQuery = await paginationQuery.select(fields);
+
+  return fieldsQuery;
 };
 
 // Get a specific user
