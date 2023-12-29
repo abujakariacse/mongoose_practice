@@ -13,3 +13,8 @@ export type TCourse = {
   isDeleted: boolean;
   preRequisiteCourses: [TPreRequisite];
 };
+
+export type TCourseFaculty = {
+  course: Types.ObjectId;
+  faculties: [Types.ObjectId];
+};
