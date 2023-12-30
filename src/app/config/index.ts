@@ -10,6 +10,9 @@ export default {
   salt_round: process.env.SALT_ROUND,
   default_password: process.env.DEFAULT_PASS,
   secret_access_token: process.env.SECRET_ACCESS_TOKEN,
+  secret_refresh_token: process.env.SECRET_REFRESH_TOKEN,
+  secret_access_expires_in: process.env.SECRET_ACCESS_EXPIRES_IN,
+  secret_refresh_expires_in: process.env.SECRET_REFRESH_EXPIRES_IN,
 };
 
 /* 
