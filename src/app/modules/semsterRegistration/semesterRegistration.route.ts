@@ -18,4 +18,9 @@ router.get('/', semesterRegistrationControllers.getRegisterdSemestersFromDB);
 
 router.get('/:id', semesterRegistrationControllers.getSingleRegisterdSemester);
 
+router.delete(
+  '/:id',
+  semesterRegistrationControllers.deleteSemesterRegistration,
+);
+
 export const SemesterRegistrationRoutes = router;
