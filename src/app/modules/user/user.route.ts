@@ -29,4 +29,6 @@ router.post(
   UserControllers.createAdmin,
 );
 
+router.get('/me', UserControllers.getMe);
+
 export const UserRoutes = router;

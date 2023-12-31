@@ -17,6 +17,8 @@ import {
 import { Faculty } from '../faculty/faculty.model';
 import { TFaculty } from '../faculty/faculty.interface';
 import { Admin } from '../admin/admin.model';
+import { verifyToken } from '../auth/auth.utils';
+import { USER_ROLES } from './user.constant';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
   // create a user object
@@ -27,6 +29,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
 
   //set student role
   userData.role = 'student';
+  userData.email = payload.email;
 
   // find academic semester info
   const admissionSemester = await AcademicSemester.findById(
@@ -99,6 +102,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
     session.startTransaction();
     //set  generated id
     userData.id = await generateFacultyId();
+    userData.email = payload.email;
 
     // create a user (transaction-1)
     const newUser = await User.create([userData], { session }); // array
@@ -139,6 +143,7 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
 
   //set student role
   userData.role = 'admin';
+  userData.email = payload.email;
 
   const session = await mongoose.startSession();
 
@@ -176,8 +181,26 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
   }
 };
 
+const getMe = async (token: string) => {
+  const decode = verifyToken(token, config.secret_access_token as string);
+
+  const { userId, role } = decode;
+
+  let result;
+
+  if (role === USER_ROLES.student) {
+    result = await Student.findOne({ id: userId });
+  } else if (role === USER_ROLES.faculty) {
+    result = await Faculty.findOne({ id: userId });
+  } else {
+    result = await Admin.findOne({ id: userId });
+  }
+  return result;
+};
+
 export const UserServices = {
   createStudentIntoDB,
   createFacultyIntoDB,
   createAdminIntoDB,
+  getMe,
 };

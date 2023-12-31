@@ -13,6 +13,9 @@ export default {
   secret_refresh_token: process.env.SECRET_REFRESH_TOKEN,
   secret_access_expires_in: process.env.SECRET_ACCESS_EXPIRES_IN,
   secret_refresh_expires_in: process.env.SECRET_REFRESH_EXPIRES_IN,
+  nodemailer_email: process.env.NODEMAILER_EMAIL,
+  nodemailer_passkey: process.env.NODEMAILER_PASSKEY,
+  reset_pass_url: process.env.RESET_PASS_URL,
 };
 
 /* 
